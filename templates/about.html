@@ -2,5 +2,33 @@
 
 
 {% block content %}
-
+    <style>
+        #content {
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            text-align: center;
+        }
+        #bio_pic {
+            margin-top: 4vw;
+            margin-bottom: 2vw;
+            width: 16vw;
+            height: 16vw;
+            border: 4px solid #0c164f;
+            border-radius: 50%;
+        }
+        #about_author {
+            color: #5643fd;
+            font-size: 1vw;
+        }
+    </style>
+    <div id="content">
+        <img id="bio_pic" src="/static/vis/strider_profile.jpg" alt="Badass Cat">
+        <br>
+        <p id="about_author">
+            This is my cat, Strider. She co-authored and helped build this page. <br>
+            She always knows how to open the developer window to assist in development <br>
+            by putting her paw on the "F12" key while I'm trying to work.
+        </p>
+    </div>
 {% endblock %}
