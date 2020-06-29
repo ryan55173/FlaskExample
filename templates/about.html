@@ -1,24 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="description" content="{{ data.description }}">
-    <meta name="author" content="{{ data.author }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="/static/vis/angry_cat.ico">
-    <link rel="stylesheet" type="text/css" href="/static/base.css">
-    <title>{{ data.title }}</title>
-</head>
-<body>
-    <div id="nav_bar">
-        <ul>
-            {% for link in nav_links %}
-            <li><a href="{{ link.url }}">{{ link.name }}</a></li>
-            {% endfor %}
-        </ul>
-    </div>
-    <div id="author_bio">
-        <img src="/static/vis/strider_profile.jpg" alt="Author Profile Picture">
-    </div>
-</body>
-</html>
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+{% endblock %}

@@ -33,17 +33,4 @@ body {
     background-color: #0c164f;
 }
 #page_content {
-    background-color: black;
-    color: #5643fd;
-    margin-top: 2vw;
-    padding: 0;
-    text-align: center;
-}
-#page_content img {
-    width: 30vw;
-    height: 40vw;
-}
-#author_bio {
-    margin: 0;
-    padding: 0;
 }
