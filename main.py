@@ -12,6 +12,7 @@ nav_links = [
 ]
 no_user = Link('Login', '/login')
 
+
 # Routes for the urls
 
 
