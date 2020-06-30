@@ -1,13 +1,14 @@
 import sqlite3
 import random
 import logging
-import datetime
 import flask_wtf
 import wtforms
+import datetime
 
 
 # UserID is '8-digits' + '_' + '8-digits'
 # Token length is 128
+# Token time format '%a_%H:%M'
 
 
 # Static
@@ -82,52 +83,11 @@ def query_sql(sql_string):
     return results
 
 
+# Account table methods
 def write_new_user(user_id, username, password):
     sql_string = 'INSERT INTO ACCOUNTS (USER_ID, USERNAME, PASSWORD)' \
                  ' VALUES ("{}", "{}", "{}");'.format(user_id, username, password)
     send_sql(sql_string)
-    log_string = 'Created new user: UserID="{}", Username="{}", Password="{}"'.format(user_id, username, password)
-    logging.info(log_string)
-
-
-def write_login(user_id):
-    # Get time
-    time = datetime.datetime.now()
-    time_now = time.strftime('%a_%H:%M:%S')
-    token = generate_token()
-    # Make token
-    sql_string = 'INSERT INTO LOGINS (USER_ID, TIME, TOKEN)' \
-                 ' VALUES ("{}", "{}", "{}");'.format(user_id, time_now, token)
-    send_sql(sql_string)
-    logging.info('Login from user_id: "{}"'.format(user_id))
-
-
-def token_exists(check_token):
-    results = query_sql('SELECT * FROM LOGINS;')
-    exists = False
-    for r in results:
-        if check_token == r[2]:
-            exists = True
-    return exists
-
-
-def generate_token():
-    token = rand_generate(128)
-    while token_exists(token):
-        token = rand_generate(128)
-    return token
-
-
-def username_to_user_id(username):
-    results = query_sql('SELECT * FROM ACCOUNTS;')
-    ret_user_id = None
-    for r in results:
-        name = r[1]
-        user_id = r[0]
-        if username == name:
-            ret_user_id = user_id
-            break
-    return ret_user_id
 
 
 def valid_login(username, password):
@@ -143,13 +103,112 @@ def valid_login(username, password):
         return False
 
 
-def token_to_user_id(token):
-    res = query_sql('SELECT * FROM LOGINS WHERE TOKEN = "{}";'.format(token))
+def get_user_id(username):
+    sql_string = 'SELECT * FROM ACCOUNTS WHERE USERNAME = "{}";'.format(username)
+    res = query_sql(sql_string)
     if len(res) < 1:
         return None
-    result = res[0]
-    user_id = result[0]
+    row = res[0]
+    return row[0]
+
+
+def get_username(user_id):
+    res = query_sql('SELECT * FROM ACCOUNTS WHERE USER_ID = "{}";'.format(user_id))
+    row = res[0]
+    return row[1]
+
+
+def account_exists(username):
+    res = query_sql('SELECT * FROM ACCOUNTS WHERE USERNAME = "{}";'.format(username))
+    if len(res) < 1:
+        return False
+    else:
+        return True
+
+
+def create_new_account(username, password):
+    new_user_id = (rand_generate(4) + '_' + rand_generate(4))
+    write_new_user(new_user_id, username, password)
+    log_string = 'Created new user: UserID="{}", Username="{}", Password="{}"'.format(new_user_id, username, password)
+    logging.info(log_string)
+
+
+# Login table methods
+def token_exists(token):
+    res = query_sql('SELECT * FROM LOGIN;')
+    exists = False
+    for r in res:
+        check_token = r[0]
+        if token == check_token:
+            exists = True
+            break
+    return exists
+
+
+def generate_token():
+    token = rand_generate(128)
+    while token_exists(token):
+        token = rand_generate(128)
+    return token
+
+
+def login_user(user_id):
+    # Returns token on login
+    res = query_sql('SELECT * FROM LOGIN WHERE USER_ID = "{}";'.format(user_id))
+    token = generate_token()
+    time_now = datetime.datetime.now()
+    time_now = time_now.strftime('%Y%m%d_%H:%M:%S')
+    if len(res) < 1:
+        send_sql('INSERT INTO LOGIN (TOKEN, TIME, USER_ID) VALUES ("{}", "{}", "{}");'.format(token, time_now, user_id))
+    else:
+        send_sql('UPDATE LOGIN SET TOKEN = "{}", TIME = "{}" WHERE USER_ID = "{}";'.format(token, time_now, user_id))
+    logging.info('Login from UserID "{}"'.format(user_id))
+    return token
+
+
+def update_time(token):
+    time_now = datetime.datetime.now()
+    send_sql('UPDATE LOGIN SET TIME = "{}" WHERE TOKEN = "{}";'.format(time_now, token))
+
+
+def fetch_user_id(token):
+    res = query_sql('SELECT * FROM LOGIN WHERE TOKEN = "{}";'.format(token))
+    row = res[0]
+    user_id = row[2]
     return user_id
+
+
+def valid_token(token):
+    res = query_sql('SELECT * FROM LOGIN WHERE TOKEN = "{}";'.format(token))
+    if len(res) < 1:
+        return False
+    row = res[0]
+    token_time = row[1]
+    token_time = datetime.datetime.strptime(token_time, '%Y%m%d_%H:%M:%S')
+    time_now = datetime.datetime.now()
+    time_diff = time_now - token_time
+    login_time = 1800  # time in seconds
+    if time_diff.total_seconds() > login_time:
+        return False
+    else:
+        return True
+
+
+def fetch_username(token):
+    res = query_sql('SELECT * FROM LOGIN WHERE TOKEN = "{}";'.format(token))
+    if len(res) < 1:
+        return None
+    row = res[0]
+    user_id = row[2]
+    username = get_username(user_id)
+    return username
+
+
+def user_link(token):
+    # TODO: Link for user account
+    username = fetch_username(token)
+    link = Link(username, '/')
+    return link
 
 
 # Other
